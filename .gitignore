@@ -1,1 +1,2 @@
-/aws-cost-exporter
+/heroku-cost-exporter
+.env.local

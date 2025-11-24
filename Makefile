@@ -2,10 +2,13 @@
 
 # Build the application
 build:
-	go build -o aws-cost-exporter .
+	go build -o heroku-cost-exporter .
 
 # Run the application
 run:
+	@if [ -f .env.local ]; then \
+		export $$(grep -v '^#' .env.local | xargs); \
+	fi; \
 	go run main.go
 
 # Run tests
@@ -18,7 +21,7 @@ tidy:
 
 # Clean build artifacts
 clean:
-	rm -f aws-cost-exporter
+	rm -f heroku-cost-exporter
 
 # Show help
 help:

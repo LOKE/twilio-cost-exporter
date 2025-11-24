@@ -1,32 +1,58 @@
-# AWS Cost Exporter
+# Heroku Cost Exporter
 
-A Prometheus exporter that collects AWS cost and usage data from AWS Cost Explorer, providing both daily and monthly cost metrics grouped by service and region.
+**Generated using [Antigravity](https://antigravity.dev)**
+
+A Prometheus exporter that collects cost and usage data from Heroku, providing metrics for invoices and team usage.
 
 ## Features
 
-- **Daily Cost Metrics**: Today's AWS costs up until now by service and region
-- **Monthly Cost Metrics**: Month-to-date AWS costs by service and region
-- **Previous Day Cost Metrics**: Complete previous day AWS costs (stable data) 
-- **Previous Month Cost Metrics**: Complete previous month AWS costs (stable data)
-- **Prometheus Integration**: Exposes metrics at `/metrics` endpoint
-- **Health Check**: Health endpoint at `/health`
-- **Automatic Updates**: Metrics refresh every 6 hours
-- **Comprehensive Logging**: Detailed logging for monitoring and debugging
+- **Invoice Metrics**: Latest invoice details including total, charges, credits, and add-ons.
+- **Team Usage Metrics**: Monthly team usage costs broken down by app and expense type (dynos, data, addons, etc.).
+- **Benchmarking**: Separate metrics for the **current month** (ramping up) and **previous month** (final) to allow for easy comparison.
+- **Prometheus Integration**: Exposes metrics at `/metrics` endpoint.
+- **Health Check**: Health endpoint at `/health`.
+- **Automatic Updates**: Metrics refresh every hour.
 
 ## Metrics
 
+### Invoice Metrics
 | Metric Name | Type | Description | Labels |
 |-------------|------|-------------|---------|
-| `aws_daily_cost_usd` | Gauge | Today's AWS cost in USD up until now (current data) | `service`, `region` |
-| `aws_monthly_cost_usd` | Gauge | Month-to-date AWS cost in USD (current data) | `service`, `region` |
-| `aws_previous_day_cost_usd` | Gauge | Complete previous day AWS cost in USD (stable data) | `service`, `region` |
-| `aws_previous_month_cost_usd` | Gauge | Complete previous month AWS cost in USD (stable data) | `service`, `region` |
+| `heroku_invoice_current_total_usd` | Gauge | Current (partial) Heroku invoice total in USD | `payment_status`, `state`, `period_end` |
+| `heroku_invoice_current_charges_total_usd` | Gauge | Current Heroku invoice charges total in USD | `period_end` |
+| `heroku_invoice_current_credits_total_usd` | Gauge | Current Heroku invoice credits total in USD | `period_end` |
+| `heroku_invoice_current_addons_total_usd` | Gauge | Current Heroku invoice addons total in USD | `period_end` |
+| `heroku_invoice_current_database_total_usd` | Gauge | Current Heroku invoice database total in USD | `period_end` |
+| `heroku_invoice_current_platform_total_usd` | Gauge | Current Heroku invoice platform total in USD | `period_end` |
+| `heroku_invoice_current_dyno_units` | Gauge | Current Heroku invoice dyno units | `period_end` |
+| `heroku_invoice_current_weighted_dyno_hours` | Gauge | Current Heroku invoice weighted dyno hours | `period_end` |
+| `heroku_invoice_previous_total_usd` | Gauge | Previous (complete) Heroku invoice total in USD | `payment_status`, `state`, `period_end` |
+| `heroku_invoice_previous_charges_total_usd` | Gauge | Previous Heroku invoice charges total in USD | `period_end` |
+| `heroku_invoice_previous_credits_total_usd` | Gauge | Previous Heroku invoice credits total in USD | `period_end` |
+| `heroku_invoice_previous_addons_total_usd` | Gauge | Previous Heroku invoice addons total in USD | `period_end` |
+| `heroku_invoice_previous_database_total_usd` | Gauge | Previous Heroku invoice database total in USD | `period_end` |
+| `heroku_invoice_previous_platform_total_usd` | Gauge | Previous Heroku invoice platform total in USD | `period_end` |
+| `heroku_invoice_previous_dyno_units` | Gauge | Previous Heroku invoice dyno units | `period_end` |
+| `heroku_invoice_previous_weighted_dyno_hours` | Gauge | Previous Heroku invoice weighted dyno hours | `period_end` |
+
+### Team Usage Metrics
+| Metric Name | Type | Description | Labels |
+|-------------|------|-------------|---------|
+| `heroku_team_usage_current_usd` | Gauge | Current month Heroku team usage cost in USD | `team_name`, `app_name`, `type`, `month` |
+| `heroku_team_usage_previous_usd` | Gauge | Previous month Heroku team usage cost in USD | `team_name`, `app_name`, `type`, `month` |
+| `heroku_team_usage_current_dyno_units` | Gauge | Current month Heroku team usage dyno units | `team_name`, `app_name`, `month` |
+| `heroku_team_usage_previous_dyno_units` | Gauge | Previous month Heroku team usage dyno units | `team_name`, `app_name`, `month` |
+
+**Note**: 
+- For USD metrics: `app_name="_team_total"` represents the total cost for the team for that specific type.
+- For USD metrics: `type` can be `data`, `addons`, `connect`, or `partner` (dynos are tracked separately in dyno_units metrics).
+- For dyno_units metrics: Values represent dyno-months (e.g., 0.368 = ~11 days of a single dyno).
 
 ## Prerequisites
 
-- AWS credentials configured (via AWS CLI, IAM roles, or environment variables)
-- AWS Cost Explorer enabled in your AWS account (may take 24 hours after first enabling)
-- Go 1.21+ (for building from source)
+- Heroku API Key
+- Heroku Team ID
+- Go 1.23+ (for building from source)
 
 ## Installation
 
@@ -34,69 +60,43 @@ A Prometheus exporter that collects AWS cost and usage data from AWS Cost Explor
 
 ```bash
 docker run -p 8080:8080 \
-  -e AWS_ACCESS_KEY_ID=your_access_key \
-  -e AWS_SECRET_ACCESS_KEY=your_secret_key \
-  -e AWS_REGION=us-east-1 \
-  ghcr.io/loke/aws-cost-exporter:latest
-```
-
-### Using Pre-built Binaries
-
-Download the latest binary from the [releases page](https://github.com/LOKE/aws-cost-exporter/releases) and run:
-
-```bash
-./aws-cost-exporter
+  -e HEROKU_API_KEY=your_api_key \
+  -e HEROKU_TEAM_ID=your_team_id \
+  ghcr.io/loke/heroku-cost-exporter:latest
 ```
 
 ### Building from Source
 
 ```bash
-git clone https://github.com/LOKE/aws-cost-exporter.git
-cd aws-cost-exporter
-go build -o aws-cost-exporter .
-./aws-cost-exporter
+git clone https://github.com/LOKE/heroku-cost-exporter.git
+cd heroku-cost-exporter
+go build -o heroku-cost-exporter .
+./heroku-cost-exporter
 ```
 
 ## Configuration
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | HTTP server port | `8080` |
-| `AWS_REGION` | AWS region | Uses AWS default config |
-| `AWS_ACCESS_KEY_ID` | AWS access key | Uses AWS default config |
-| `AWS_SECRET_ACCESS_KEY` | AWS secret key | Uses AWS default config |
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `PORT` | HTTP server port (default: 8080) | No |
+| `HEROKU_API_KEY` | Your Heroku API Key | Yes |
+| `HEROKU_TEAM_ID` | The ID of the Heroku Team to track | Yes |
 
-### AWS Credentials
+## Caveats
 
-The exporter supports all standard AWS credential methods:
-- Environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`)
-- AWS credentials file (`~/.aws/credentials`)
-- IAM roles (for EC2, ECS, Lambda)
-- AWS SSO
-
-Required AWS permissions:
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ce:GetCostAndUsage"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-```
+- **Invoice Selection**: The exporter tracks both the **current** (partial/open) invoice and the **previous** (complete) invoice. It assumes the most recent invoice in the API response is the current one, and the second-to-last is the previous one.
+- **Current Invoice**: Represents the ongoing billing cycle and will change throughout the month as usage accumulates.
+- **Previous Invoice**: Represents the finalized invoice from the last billing cycle, providing stable data for historical tracking.
 
 ## Usage
 
 1. Start the exporter:
    ```bash
-   ./aws-cost-exporter
+   export HEROKU_API_KEY="your-key"
+   export HEROKU_TEAM_ID="your-team-id"
+   ./heroku-cost-exporter
    ```
 
 2. Check health:
@@ -112,7 +112,7 @@ Required AWS permissions:
 4. Configure Prometheus to scrape the metrics:
    ```yaml
    scrape_configs:
-     - job_name: 'aws-cost-exporter'
+     - job_name: 'heroku-cost-exporter'
        static_configs:
          - targets: ['localhost:8080']
    ```
@@ -130,25 +130,6 @@ make clean    # Clean build artifacts
 make help     # Show available targets
 ```
 
-### Project Structure
-
-- `main.go` - Main application code
-- `Makefile` - Build automation
-- `.github/workflows/release.yml` - CI/CD pipeline
-- `CLAUDE.md` - Development instructions for AI assistants
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
 ## License
 
 This project is licensed under the MIT License.
-
-## Support
-
-For issues and questions, please use the [GitHub Issues](https://github.com/LOKE/aws-cost-exporter/issues) page.

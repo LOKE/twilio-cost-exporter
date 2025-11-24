@@ -29,19 +29,19 @@ jobs:
     - name: Build for multiple platforms
       run: |
         # Build for Linux x86_64
-        GOOS=linux GOARCH=amd64 go build -o aws-cost-exporter-linux-amd64 .
+        GOOS=linux GOARCH=amd64 go build -o heroku-cost-exporter-linux-amd64 .
         
         # Build for Linux ARM64
-        GOOS=linux GOARCH=arm64 go build -o aws-cost-exporter-linux-arm64 .
+        GOOS=linux GOARCH=arm64 go build -o heroku-cost-exporter-linux-arm64 .
         
         # Build for macOS x86_64
-        GOOS=darwin GOARCH=amd64 go build -o aws-cost-exporter-darwin-amd64 .
+        GOOS=darwin GOARCH=amd64 go build -o heroku-cost-exporter-darwin-amd64 .
         
         # Build for macOS ARM64
-        GOOS=darwin GOARCH=arm64 go build -o aws-cost-exporter-darwin-arm64 .
+        GOOS=darwin GOARCH=arm64 go build -o heroku-cost-exporter-darwin-arm64 .
         
         # Build for Windows x86_64
-        GOOS=windows GOARCH=amd64 go build -o aws-cost-exporter-windows-amd64.exe .
+        GOOS=windows GOARCH=amd64 go build -o heroku-cost-exporter-windows-amd64.exe .
 
     - name: Log in to the Container Registry
       uses: docker/login-action@v3
@@ -65,9 +65,9 @@ jobs:
       run: |
         cat > Dockerfile << 'EOF'
         FROM scratch
-        COPY aws-cost-exporter-linux-amd64 /aws-cost-exporter
+        COPY heroku-cost-exporter-linux-amd64 /heroku-cost-exporter
         EXPOSE 8080
-        ENTRYPOINT ["/aws-cost-exporter"]
+        ENTRYPOINT ["/heroku-cost-exporter"]
         EOF
 
     - name: Build and push Docker image
@@ -83,10 +83,10 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          aws-cost-exporter-linux-amd64
-          aws-cost-exporter-linux-arm64
-          aws-cost-exporter-darwin-amd64
-          aws-cost-exporter-darwin-arm64
-          aws-cost-exporter-windows-amd64.exe
+          heroku-cost-exporter-linux-amd64
+          heroku-cost-exporter-linux-arm64
+          heroku-cost-exporter-darwin-amd64
+          heroku-cost-exporter-darwin-arm64
+          heroku-cost-exporter-windows-amd64.exe
       env:
         GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
