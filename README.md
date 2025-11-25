@@ -1,6 +1,6 @@
 # Twilio Cost Exporter
 
-**Generated using [Antigravity](https://antigravity.dev)**
+**Generated using [Antigravity](https://antigravity.google)**
 
 A Prometheus exporter for Twilio usage costs.
 
