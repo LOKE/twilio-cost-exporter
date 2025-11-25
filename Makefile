@@ -2,7 +2,7 @@
 
 # Build the application
 build:
-	go build -o heroku-cost-exporter .
+	go build -o twilio-cost-exporter .
 
 # Run the application
 run:
@@ -21,7 +21,7 @@ tidy:
 
 # Clean build artifacts
 clean:
-	rm -f heroku-cost-exporter
+	rm -f twilio-cost-exporter
 
 # Show help
 help:

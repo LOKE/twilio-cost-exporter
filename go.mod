@@ -1,4 +1,4 @@
-module github.com/LOKE/heroku-cost-exporter
+module github.com/LOKE/twilio-cost-exporter
 
 go 1.23.4
 
